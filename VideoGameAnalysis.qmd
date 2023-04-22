@@ -6,7 +6,7 @@ editor: visual
 
 We will be examining data from a Tidy Tuesday repository. The repository can be accessed from the following link: https://github.com/rfordatascience/tidytuesday/tree/master/data/2021/2021-03-16. This dataset contains a time series of video games and their average number of players, peak players and gain in players over time.
 
-With this data I would like to be able to predict the number of players for any game and any month of a year.
+With this data, let's see if there are any interesting trends. What does gametime look like over time. Are there any particular games that show interesting statistics? Are there any trends that could be explained based upon the data? Let's find out.
 
 ```{r R_setup}
 library(reticulate)
@@ -17,6 +17,8 @@ Let's first begin by reading in our data with the code below. The data can be re
 
 ```{python read_data}
 import pandas as pd
+import tkinter
+import matplotlib.pyplot as plt
 video_game_tbl = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-03-16/games.csv')
 ```
 
@@ -44,7 +46,7 @@ video_game_tbl.info()
 So we can see that we have game information by year and month. Below is a more detailed breakdown of each field from the github repository.
 
 | variable      | class     | description                                                               |
-|---------------|-----------|---------------------------------------------------------------------------|
+|---------------|---------------|------------------------------------------|
 | gamename      | character | Name of video games                                                       |
 | year          | double    | Year of measure                                                           |
 | month         | character | Month of measure                                                          |
@@ -97,3 +99,89 @@ video_game_clean_tbl['avg'].sum()
 ```
 
 Holy moly. The total averaged value is 226 million. Could you imagine what this number looks like overall? That is a lot of screen-time!
+
+Let's make a visual of this total via a bar graph.
+
+```{python}
+fig, bp = plt.subplots()
+bp.bar(['Total Gametime'], video_game_clean_tbl['avg'].sum(), color = 'lightblue')
+bp.ticklabel_format(axis='y', style='plain')
+plt.show()
+```
+
+This visual is just a simple way to show off our total. It isn't completely meaningful but now let's view the data by year. First we will group the data by year and store it.
+
+```{python}
+video_game_grp_year_tbl = video_game_clean_tbl.groupby('year').agg({'avg' : 'sum'})
+video_game_grp_year_tbl
+```
+
+Now that we have our data by year, let's visualize it in a bar plot.
+
+```{python}
+plt.close()
+fig, bp = plt.subplots(1, 1)
+bp.bar(video_game_grp_year_tbl.index, video_game_grp_year_tbl['avg'], color = 'lightblue')
+bp.ticklabel_format(axis='y', style='plain')
+
+plt.show()
+```
+
+Wow something very interesting happened. Each year from 2012-2018 there was an increase in the average but in 2019 we saw our first decline. 2020 immediately saw a rebound! So to break this down, people were able to spend a lot more free-time at home and on video games during 2020 because of the pandemic. What is even more interesting is that 2019 declined! What would have caused that? Was steam running out of steam? Pun fully intended. We may never know. My guess is that during this time there was a lot of additional competition really starting to take off to pull gamers from steam to a different platform. EPIC games store was really starting to hit a groove and things like GOG really took off. This could explain the decline and COVID really explains the sudden up-tick.
+
+Let's go ahead and compare the time spent on games for the year 2020, when we had that huge uptick. We will examine this data by month in the code below.
+
+```{python}
+
+video_game_2020_tbl = video_game_clean_tbl[video_game_clean_tbl['year'] == 2020].groupby('month').agg({'avg' : 'sum'})
+
+plt.close()
+fig, bp = plt.subplots(1, 1)
+bp.bar(video_game_2020_tbl.index, video_game_2020_tbl['avg'], color = 'lightblue')
+bp.ticklabel_format(axis='y', style='plain')
+
+plt.show()
+```
+
+Okay, cool we have the graph by month but let's address the elephant in the room... the months are out of order. Great... Let's go ahead and fix that with the code below.
+
+```{python}
+month_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+              'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
+video_game_2020_tbl = video_game_clean_tbl.copy()
+video_game_2020_tbl['month_num'] = video_game_2020_tbl['month'].map(month_dict)
+
+video_game_2020_tbl = video_game_2020_tbl[video_game_2020_tbl['year'] == 2020].groupby('month_num').agg({'avg' : 'sum'})
+video_game_2020_tbl
+```
+
+Now that we have the month number instead of a character, let's go ahead and re-plot!
+
+```{python}
+plt.close()
+fig, bp = plt.subplots(1, 1)
+bp.bar(video_game_2020_tbl.index, video_game_2020_tbl['avg'], color = 'lightblue')
+bp.ticklabel_format(axis='y', style='plain')
+
+plt.show()
+```
+
+Wow! What we see here is that March, April and May are some of our highest months of the year in terms of avg. Let's see what happens when we examine a different year. Let's look at 2018 when the total was near 2020. Do you think we will see the same trend?
+
+```{python}
+month_dict = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+              'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
+video_game_2018_tbl = video_game_clean_tbl.copy()
+video_game_2018_tbl['month_num'] = video_game_2018_tbl['month'].map(month_dict)
+
+video_game_2018_tbl = video_game_2018_tbl[video_game_2018_tbl['year'] == 2018].groupby('month_num').agg({'avg' : 'sum'})
+
+plt.close()
+fig, bp = plt.subplots(1, 1)
+bp.bar(video_game_2018_tbl.index, video_game_2018_tbl['avg'], color = 'lightblue')
+bp.ticklabel_format(axis='y', style='plain')
+
+plt.show()
+```
+
+March and April are still very solid months but you can see a totally different trend throughout the year. January and February seemed to be some of the best performing months but were the worst performers compared to 2020. Maybe COVID starting in March of 2020 influenced the entire year after February?
