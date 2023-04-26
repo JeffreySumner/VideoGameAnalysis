@@ -11,6 +11,7 @@ With this data, let's see if there are any interesting trends. What does gametim
 ```{r R_setup}
 library(reticulate)
 use_virtualenv("cse6040")
+
 ```
 
 Let's first begin by reading in our data with the code below. The data can be read directly from the rfordatascience Github repo or downloaded then read in.
