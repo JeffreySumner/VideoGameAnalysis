@@ -1,1 +1,2 @@
 # VideoGameAnalysis
+This repository was created for my CSE6040 class at Georgia Tech. This was an extra credit assignment for an additional 3% grade. The task was to pick a data set and create some kind of report that analyzes the data. The requirements were open-ended. Ultimately I decided to pull data from a Tidy Tuesday example then briefly analyze it.
